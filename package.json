@@ -1,6 +1,6 @@
 {
   "name": "discord-but-in-terminal",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Terminal-based Discord client (TUI) — selfbot, runs anywhere in CLI",
   "main": "index.js",
   "scripts": {
@@ -30,6 +30,6 @@
     "discord.js-selfbot-v13": "^3.7.1"
   },
   "bin": {
-    "discord-tui": "./index.js"
+    "discord-tui": "index.js"
   }
 }

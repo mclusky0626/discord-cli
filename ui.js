@@ -36,7 +36,7 @@ function createUI(handlers, initialTheme, strings) {
     top: 1, left: 0, width: '28%', bottom: 1,
     label: s.sidebarTitle,
     border: 'line',
-    keys: true, vi: true, mouse: true, tags: true,
+    keys: true, mouse: true, tags: true,
     style: {
       selected: { bg: t.sidebar.selected.bg, fg: t.sidebar.selected.fg, bold: true },
       border: { fg: t.sidebar.border },

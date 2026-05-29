@@ -6,7 +6,7 @@ const themes = {
   dark: {
     label: '다크 (기본)',
     header:   { bg: 'blue',     fg: 'white' },
-    footer:   { bg: 'black',    fg: 'grey' },
+    footer:   { bg: '#1D2439',  fg: '#8B9CC8' },
     sidebar:  { border: 'cyan',    selected: { bg: 'blue',    fg: 'white' } },
     messages: { border: 'cyan' },
     input:    { border: 'green' },
@@ -15,7 +15,7 @@ const themes = {
   amoled: {
     label: 'AMOLED (순수 검정)',
     header:   { bg: '#1A1A2E',  fg: '#E0E0E0' },
-    footer:   { bg: 'black',    fg: '#444444' },
+    footer:   { bg: '#1A1A2E',  fg: '#7777CC' },
     sidebar:  { border: '#7B2FBE', selected: { bg: '#7B2FBE', fg: 'black' } },
     messages: { border: '#7B2FBE' },
     input:    { border: '#00E5FF' },
