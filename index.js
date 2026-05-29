@@ -30,6 +30,13 @@ let oldestMsgId     = null;     // 히스토리 더 로드용
 
 const unread        = new Map(); // channelId → number
 
+// ── 프레전스 상태 ─────────────────────────────────────────────
+let presenceStatus      = 'online';   // 'online'|'idle'|'dnd'|'invisible'
+let presenceCustomMsg   = '';         // 커스텀 상태 메시지
+
+// 상태 표시 아이콘 (터미널에서 안전한 ASCII 대체)
+const STATUS_ICON = { online: '{green-fg}●{/}', idle: '{yellow-fg}●{/}', dnd: '{red-fg}●{/}', invisible: '{grey-fg}●{/}' };
+
 // ── 재시작 ────────────────────────────────────────────────────
 function restart() {
   ui.setStatus(s.restartRequired);
@@ -41,6 +48,14 @@ function restart() {
     });
     process.exit(0);
   }, 600);
+}
+
+// ── 헤더 갱신 ────────────────────────────────────────────────
+function refreshHeader() {
+  const icon    = STATUS_ICON[presenceStatus] || STATUS_ICON.online;
+  const channel = activeChannel ? `  {grey-fg}│{/}  ${esc(channelTitle(activeChannel))}` : '';
+  const custom  = presenceCustomMsg ? `  {grey-fg}「${esc(presenceCustomMsg)}」{/}` : '';
+  ui.setStatus(`${icon} ${custom}${channel}`);
 }
 
 // ── 메시지 포맷 ──────────────────────────────────────────────
@@ -132,7 +147,7 @@ async function openChannel(ch) {
   activeChannel = ch; oldestMsgId = null;
   unread.set(ch.id, 0);
   ui.clearMessages();
-  ui.setStatus(channelTitle(ch));
+  refreshHeader();
   try {
     const fetched = await ch.messages.fetch({ limit: 50 });
     const arr = [...fetched.values()].sort((a, b) => a.createdTimestamp - b.createdTimestamp);
@@ -216,6 +231,10 @@ async function handleCommand(text) {
     return switchTheme(parts[1].toLowerCase());
   }
 
+  if (cmd === '/status')      return changePresenceStatus(parts[1]);
+  if (cmd === '/setstatus')   return setCustomStatus(parts.slice(1).join(' '));
+  if (cmd === '/clearstatus') return clearCustomStatus();
+
   if (['/attach', '/file', '/img'].includes(cmd)) {
     const m = text.match(/^\/(attach|file|img)\s+(?:"([^"]+)"|(\S+))\s*(.*)$/i);
     if (m) return sendFile(m[2] || m[3], (m[4] || '').trim());
@@ -228,6 +247,65 @@ async function handleCommand(text) {
   ui.render();
 }
 
+// ── 프레전스 / 프로필 ─────────────────────────────────────────
+async function changePresenceStatus(status) {
+  const valid = ['online', 'idle', 'dnd', 'invisible'];
+  if (!status || !valid.includes(status)) {
+    ui.appendMessage(`{yellow-fg}${s.statusUsage}{/}`);
+    ui.render();
+    return;
+  }
+  try {
+    await client.user.setStatus(status);
+    presenceStatus = status;
+    refreshHeader();
+    const label = (s.statusLabels && s.statusLabels[status]) || status;
+    ui.appendMessage(`{green-fg}${s.statusChanged(label)}{/}`);
+    ui.render();
+  } catch (e) {
+    ui.appendMessage(`{red-fg}${s.statusFailed(esc(e.message))}{/}`);
+    ui.render();
+  }
+}
+
+async function setCustomStatus(message) {
+  const msg = message.trim();
+  if (!msg) {
+    ui.appendMessage(`{yellow-fg}${s.customStatusUsage}{/}`);
+    ui.render();
+    return;
+  }
+  try {
+    await client.user.setPresence({
+      status: presenceStatus,
+      activities: [{ name: 'Custom Status', type: 'CUSTOM', state: msg }],
+    });
+    presenceCustomMsg = msg;
+    refreshHeader();
+    ui.appendMessage(`{green-fg}${s.customStatusSet(esc(msg))}{/}`);
+    ui.render();
+  } catch (e) {
+    ui.appendMessage(`{red-fg}${s.statusFailed(esc(e.message))}{/}`);
+    ui.render();
+  }
+}
+
+async function clearCustomStatus() {
+  try {
+    await client.user.setPresence({
+      status: presenceStatus,
+      activities: [],
+    });
+    presenceCustomMsg = '';
+    refreshHeader();
+    ui.appendMessage(`{green-fg}${s.customStatusCleared}{/}`);
+    ui.render();
+  } catch (e) {
+    ui.appendMessage(`{red-fg}${s.statusFailed(esc(e.message))}{/}`);
+    ui.render();
+  }
+}
+
 // ── 설정 (텍스트 방식) ───────────────────────────────────────
 function showSettings() {
   const token    = loadToken() || '';
@@ -236,10 +314,16 @@ function showSettings() {
     : '(없음)';
   const langNames = { ko: '한국어', en: 'English', ja: '日本語' };
 
+  const statusLabel = (s.statusLabels && s.statusLabels[presenceStatus]) || presenceStatus;
+  const customPart  = presenceCustomMsg ? `  {grey-fg}「${esc(presenceCustomMsg)}」{/}` : '  {grey-fg}(없음){/}';
+
   ui.appendMessage('{yellow-fg}{bold}⚙  Settings{/}');
   ui.appendMessage('{grey-fg}──────────────────────────────────────{/}');
   ui.appendMessage(`  {bold}Language{/bold}  ${esc(langNames[currentLang] || currentLang)}   {grey-fg}/lang ko|en|ja{/}`);
   ui.appendMessage(`  {bold}Token   {/bold}  ${esc(masked)}   {grey-fg}/token{/}`);
+  ui.appendMessage('{grey-fg}──────────────────────────────────────{/}');
+  ui.appendMessage(`  {bold}Status  {/bold}  ${STATUS_ICON[presenceStatus]} ${esc(statusLabel)}   {grey-fg}/status online|idle|dnd|invisible{/}`);
+  ui.appendMessage(`  {bold}Msg     {/bold}${customPart}   {grey-fg}/setstatus <msg>  /clearstatus{/}`);
   ui.appendMessage('{grey-fg}──────────────────────────────────────{/}');
   ui.appendMessage(`  {bold}Theme{/bold}  {grey-fg}/theme <name>{/}`);
 
@@ -344,7 +428,8 @@ client.on('messageCreate', (m) => {
 });
 
 client.on('ready', () => {
-  ui.setStatus(s.loggedIn(client.user.tag));
+  presenceStatus = client.user.presence?.status ?? 'online';
+  refreshHeader();
   buildRoot();
   ui.focusList();
 });
