@@ -5,8 +5,6 @@
 # Discord TUI
 
 **터미널 기반 디스코드 클라이언트 | Terminal-based Discord Client**
-**THIS IS AGAINST DISCORD TOS**
-your acount can be banned
 ---
 
 ## 📖 한국어 (Korean)
