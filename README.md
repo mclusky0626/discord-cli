@@ -12,7 +12,8 @@
 ### 소개
 
 Discord TUI는 터미널에서 실행 가능한 경량의 디스코드 클라이언트입니다. 사용자 토큰을 이용하여 로그인하고, 풀스크린 TUI 인터페이스에서 메시지 송수신, 파일 첨부, 테마 변경 등 모든 기능을 사용할 수 있습니다.
-
+아직 오류가 많은 초기버전으로 여러분들이 개선시켜주세요 ㅇㅅㅇ
+This is still beta so there will be lots of errors. please improve this :)
 ### 설치
 
 npm을 통해 전역으로 설치합니다:
