@@ -22,7 +22,7 @@ const ui = createUI(
 
 // ── 상태 ──────────────────────────────────────────────────────
 let activeChannel   = null;
-let currentView     = 'root';   // 'root' | 'guild' | 'dms'
+let currentView     = 'root';   // 'root' | 'guild' | 'dms' | 'friends'
 let currentGuild    = null;
 let listData        = [];
 let themeId         = currentThemeId;
@@ -89,8 +89,18 @@ function getGuildUnread(guild) {
 function buildRoot() {
   currentView = 'root'; listData = [];
   const items = [];
+
+  // 친구 목록
+  const pendingCount = client.relationships?.incomingCache?.size ?? 0;
+  const pendingBadge = pendingCount > 0 ? ` {yellow-fg}(${pendingCount}){/}` : '';
+  items.push(`{cyan-fg}${s.friendsTitle}{/}${pendingBadge}`);
+  listData.push({ type: 'friends' });
+
+  // DM
   items.push(`{cyan-fg}${s.dmsTitle}{/}${getUnreadBadge('__dms__')}`);
   listData.push({ type: 'dms' });
+
+  // 서버
   [...client.guilds.cache.values()]
     .sort((a, b) => a.name.localeCompare(b.name))
     .forEach((g) => {
@@ -136,8 +146,63 @@ function buildDMs() {
   ui.renderList(items);
 }
 
+function buildFriends() {
+  currentView = 'friends'; listData = [];
+  const items = [`{grey-fg}${s.back}{/}`];
+  listData.push({ type: 'back' });
+
+  // 대기 중인 친구 요청
+  const pending = [...(client.relationships?.incomingCache?.values() ?? [])].filter(Boolean);
+  if (pending.length) {
+    items.push(`{yellow-fg}── ${s.friendsPending} (${pending.length}) ──{/}`);
+    listData.push({ type: 'none' });
+    for (const user of pending) {
+      items.push(`  {yellow-fg}? ${esc(user?.username ?? '???')}{/}`);
+      listData.push({ type: 'none' });
+    }
+  }
+
+  // 친구 목록 상태별 그루핑
+  const friends = [...(client.relationships?.friendCache?.values() ?? [])].filter(Boolean);
+  const grouped = { online: [], idle: [], dnd: [], offline: [] };
+  for (const user of friends) {
+    const st = client.presences.cache.get(user.id)?.status ?? 'offline';
+    (grouped[st] || grouped.offline).push(user);
+  }
+
+  const groups = [
+    { key: 'online',  icon: '{green-fg}●{/}',  label: s.friendsOnline },
+    { key: 'idle',    icon: '{yellow-fg}●{/}', label: s.friendsIdle },
+    { key: 'dnd',     icon: '{red-fg}●{/}',    label: s.friendsDnd },
+    { key: 'offline', icon: '{grey-fg}●{/}',   label: s.friendsOffline },
+  ];
+
+  let total = 0;
+  for (const { key, icon, label } of groups) {
+    const users = grouped[key];
+    if (!users.length) continue;
+    items.push(`{grey-fg}── ${label} (${users.length}) ──{/}`);
+    listData.push({ type: 'none' });
+    for (const user of users) {
+      const nick = client.relationships.friendNicknames.get(user.id);
+      const name = nick || user.username;
+      items.push(`  ${icon} ${esc(name)}`);
+      listData.push({ type: 'friend', user });
+      total++;
+    }
+  }
+
+  if (!total && !pending.length) {
+    items.push(`{grey-fg}${s.friendsNone}{/}`);
+    listData.push({ type: 'none' });
+  }
+
+  ui.renderList(items);
+}
+
 function refreshCurrentList() {
-  if      (currentView === 'root')  buildRoot();
+  if      (currentView === 'root')    buildRoot();
+  else if (currentView === 'friends') buildFriends();
   else if (currentView === 'guild' && currentGuild) buildGuild(currentGuild);
   else if (currentView === 'dms')   buildDMs();
 }
@@ -160,6 +225,17 @@ async function openChannel(ch) {
   }
   refreshCurrentList(); // 읽은 채널 뱃지 초기화
   ui.focusInput();
+}
+
+// ── 친구 DM 열기 ─────────────────────────────────────────────
+async function openFriendDM(user) {
+  try {
+    const dm = await user.createDM();
+    await openChannel(dm);
+  } catch (e) {
+    ui.appendMessage(`{red-fg}${s.friendsDmFailed(esc(e.message))}{/}`);
+    ui.render();
+  }
 }
 
 // ── 히스토리 더 로드 ─────────────────────────────────────────
@@ -195,10 +271,12 @@ async function loadMore() {
 function onListSelect(index) {
   const item = listData[index];
   if (!item) return;
-  if (item.type === 'dms')     return buildDMs();
-  if (item.type === 'guild')   return buildGuild(item.guild);
-  if (item.type === 'back')    return buildRoot();
-  if (item.type === 'channel') return openChannel(item.channel);
+  if (item.type === 'friends')  return buildFriends();
+  if (item.type === 'dms')      return buildDMs();
+  if (item.type === 'guild')    return buildGuild(item.guild);
+  if (item.type === 'back')     return buildRoot();
+  if (item.type === 'channel')  return openChannel(item.channel);
+  if (item.type === 'friend')   return openFriendDM(item.user);
 }
 
 // ── 입력 처리 ────────────────────────────────────────────────
@@ -223,6 +301,7 @@ async function handleCommand(text) {
   if (cmd === '/help')     return showHelp();
   if (cmd === '/more')     return loadMore();
   if (cmd === '/settings') return showSettings();
+  if (cmd === '/friends')  { buildFriends(); ui.focusList(); return; }
   if (cmd === '/lang')     return switchLang(parts[1]);
   if (cmd === '/token')    return changeToken();
 
@@ -426,6 +505,17 @@ client.on('messageCreate', (m) => {
     refreshCurrentList();
   }
 });
+
+// 친구 상태 변경 시 친구 목록 실시간 갱신
+client.on('presenceUpdate', (_old, _new) => {
+  if (currentView === 'friends') buildFriends();
+  // 루트에서도 친구 온라인 배지 표시를 위해 갱신
+  if (currentView === 'root') buildRoot();
+});
+
+// 친구 관계 변경 (요청 수신 등) 시 갱신
+client.on('relationshipAdd', () => { if (currentView === 'root' || currentView === 'friends') refreshCurrentList(); });
+client.on('relationshipRemove', () => { if (currentView === 'root' || currentView === 'friends') refreshCurrentList(); });
 
 client.on('ready', () => {
   presenceStatus = client.user.presence?.status ?? 'online';

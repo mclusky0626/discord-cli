@@ -34,6 +34,7 @@ const strings = {
       '  텍스트 입력 후 Enter → 메시지 전송',
       '  {cyan-fg}/attach <파일경로> [메시지]{/}  → 사진/파일 첨부',
       '  {cyan-fg}/more{/}  → 이전 메시지 50개 더 로드',
+      '  {cyan-fg}/friends{/}  → 친구 목록으로 이동',
       '  {cyan-fg}/status online|idle|dnd|invisible{/}  → 상태 변경',
       '  {cyan-fg}/setstatus <메시지>{/}  → 커스텀 상태 메시지 설정',
       '  {cyan-fg}/clearstatus{/}  → 상태 메시지 삭제',
@@ -69,6 +70,15 @@ const strings = {
     tokenPromptHow: ' {yellow-fg}토큰 얻는 방법:{/}\n  1) {cyan-fg}https://discord.com{/} 웹 접속\n  2) {bold}F12{/bold} → Network 탭 열기\n  3) 페이지 새로고침 → 아무 요청 클릭\n  4) Headers 탭 → {bold}authorization{/bold} 값 복사',
     tokenPromptNeed: ' {bold}유저 토큰{/bold} 입력이 필요합니다.',
     tokenPromptLabel: ' 토큰 입력:',
+    // 친구
+    friendsTitle: '👥  친구',
+    friendsOnline: '온라인',
+    friendsIdle: '자리비움',
+    friendsDnd: '방해금지',
+    friendsOffline: '오프라인',
+    friendsPending: '📩 친구 요청',
+    friendsNone: '(친구가 없습니다)',
+    friendsDmFailed: (msg) => `DM 열기 실패: ${msg}`,
   },
 
   en: {
@@ -106,6 +116,7 @@ const strings = {
       '  Type text + Enter → send message',
       '  {cyan-fg}/attach <filepath> [message]{/}  → attach photo/file',
       '  {cyan-fg}/more{/}  → load 50 older messages',
+      '  {cyan-fg}/friends{/}  → go to friends list',
       '  {cyan-fg}/status online|idle|dnd|invisible{/}  → change presence',
       '  {cyan-fg}/setstatus <message>{/}  → set custom status message',
       '  {cyan-fg}/clearstatus{/}  → clear status message',
@@ -139,6 +150,15 @@ const strings = {
     tokenPromptHow: ' {yellow-fg}How to get your token:{/}\n  1) Open {cyan-fg}https://discord.com{/} in your browser\n  2) Press {bold}F12{/bold} → Network tab\n  3) Refresh page → click any request\n  4) Headers tab → copy the {bold}authorization{/bold} value',
     tokenPromptNeed: ' Your {bold}user token{/bold} is required.',
     tokenPromptLabel: ' Paste token:',
+    // friends
+    friendsTitle: '👥  Friends',
+    friendsOnline: 'Online',
+    friendsIdle: 'Idle',
+    friendsDnd: 'Do Not Disturb',
+    friendsOffline: 'Offline',
+    friendsPending: '📩 Friend Requests',
+    friendsNone: '(No friends)',
+    friendsDmFailed: (msg) => `Failed to open DM: ${msg}`,
   },
 
   ja: {
@@ -176,6 +196,7 @@ const strings = {
       '  テキスト入力後 Enter → メッセージ送信',
       '  {cyan-fg}/attach <ファイルパス> [メッセージ]{/}  → 写真/ファイル添付',
       '  {cyan-fg}/more{/}  → 過去のメッセージを50件さらに読み込む',
+      '  {cyan-fg}/friends{/}  → フレンドリストへ移動',
       '  {cyan-fg}/status online|idle|dnd|invisible{/}  → ステータス変更',
       '  {cyan-fg}/setstatus <メッセージ>{/}  → カスタムステータス設定',
       '  {cyan-fg}/clearstatus{/}  → ステータスメッセージを削除',
@@ -209,6 +230,15 @@ const strings = {
     tokenPromptHow: ' {yellow-fg}トークンの取得方法:{/}\n  1) {cyan-fg}https://discord.com{/} をブラウザで開く\n  2) {bold}F12{/bold} → Network タブ\n  3) ページを更新 → 任意のリクエストをクリック\n  4) Headers タブ → {bold}authorization{/bold} の値をコピー',
     tokenPromptNeed: ' {bold}ユーザートークン{/bold}の入力が必要です。',
     tokenPromptLabel: ' トークンを貼り付け:',
+    // フレンド
+    friendsTitle: '👥  フレンド',
+    friendsOnline: 'オンライン',
+    friendsIdle: '離席中',
+    friendsDnd: '取り込み中',
+    friendsOffline: 'オフライン',
+    friendsPending: '📩 フレンド申請',
+    friendsNone: '(フレンドがいません)',
+    friendsDmFailed: (msg) => `DMを開けません: ${msg}`,
   },
 };
 
