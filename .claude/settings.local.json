@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --version)",
+      "Bash(python3 --version)",
+      "Bash(npm --version)",
+      "Bash(node -e \"const p=require\\('./discord.js-selfbot-v13-3.7.1/package.json'\\); console.log\\('name:',p.name,'\\\\nversion:',p.version,'\\\\nmain:',p.main,'\\\\ndeps:',Object.keys\\(p.dependencies||{}\\).join\\(', '\\)\\)\")",
+      "Bash(npm init *)",
+      "Bash(npm pkg *)",
+      "Bash(npm install *)",
+      "Bash(node /tmp/dctest.cjs)",
+      "Bash(node --check config.js)",
+      "Bash(node --check ui.js)",
+      "Bash(node --check index.js)",
+      "Bash(node -e \"require\\('./config'\\); require\\('./ui'\\); console.log\\('config+ui require OK'\\)\")",
+      "Bash(chmod +x index.js)",
+      "Bash(npm link *)",
+      "Bash(discord --help)"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+.token
+.config.json
+node_modules/
+discord.js-selfbot-v13-3.7.1/
+discord.js-selfbot-v13-3.7.1.zip
+*.log

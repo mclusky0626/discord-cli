@@ -1,0 +1,12 @@
+# 토큰 / 개인 설정 — 절대 포함하면 안 됨
+.token
+.config.json
+
+# 불필요한 파일
+discord.js-selfbot-v13-3.7.1/
+discord.js-selfbot-v13-3.7.1.zip
+*.log
+
+# 개발 도구
+.claude/
+.venv/

@@ -1,0 +1,35 @@
+{
+  "name": "discord-but-in-terminal",
+  "version": "1.0.1",
+  "description": "Terminal-based Discord client (TUI) — selfbot, runs anywhere in CLI",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "discord",
+    "terminal",
+    "tui",
+    "cli",
+    "selfbot",
+    "blessed"
+  ],
+  "files": [
+    "index.js",
+    "ui.js",
+    "config.js",
+    "themes.js",
+    "i18n.js",
+    "README.md"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "debug": "^4.4.3",
+    "discord.js-selfbot-v13": "^3.7.1"
+  },
+  "bin": {
+    "discord-tui": "./index.js"
+  }
+}
